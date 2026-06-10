@@ -1,4 +1,3 @@
-
 <template>
   <div>
     <nav class="navbar navbar-light bg-white shadow-sm mb-4">
@@ -7,7 +6,6 @@
         <router-link to="/" class="btn btn-outline-primary">⇆ Switch Page</router-link>
       </div>
     </nav>
-
     <div class="container">
       <div class="card shadow-sm">
         <div class="card-header">
@@ -62,48 +60,35 @@ export default {
       fetch("https://1e32u3h20b.execute-api.eu-north-1.amazonaws.com/prod/appointments")
         .then(res => res.json())
         .then(data => {
-          const parsed = JSON.parse(data.body);
-          this.appointments = parsed;
+          this.appointments = Array.isArray(data) ? data : JSON.parse(data.body);
+        })
+        .catch(err => {
+          console.error("Error fetching appointments:", err);
         });
     },
     updateStatus(appointment, newStatus) {
-      // Log the full appointment object and its ID
-      console.log(" appointment (proxy):", appointment);
-      const cleanAppointment = JSON.parse(JSON.stringify(appointment));
-      console.log(" Clean appointment:", cleanAppointment);
-      console.log("appointmentId:", cleanAppointment.appointmentId);
-      console.log(" appointmentId (direct):", appointment.appointmentId);
-
       const url = `https://1e32u3h20b.execute-api.eu-north-1.amazonaws.com/prod/appointments/${appointment.appointmentId}`;
-
-      const payload = { status: newStatus };
-
       fetch(url, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus })
       })
-          .then(async res => {
-
-            const rawBody = await res.text();
-
-            if (!res.ok) {
-              throw new Error(`HTTP ${res.status}: ${rawBody}`);
-            }
-
-            return JSON.parse(rawBody);
-          })
-          .then(() => {
-            alert("Status updated!");
-          })
-          .catch(err => {
-            console.error(" Failed to update status:", err);
-            alert("Update failed. See console for details.");
-          });
+        .then(async res => {
+          const rawBody = await res.text();
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${rawBody}`);
+          }
+          return JSON.parse(rawBody);
+        })
+        .then(() => {
+          alert("Status updated!");
+          this.fetchAppointments();
+        })
+        .catch(err => {
+          console.error("Failed to update status:", err);
+          alert("Update failed.");
+        });
     }
-
-     }
+  }
 };
 </script>
