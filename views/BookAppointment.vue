@@ -1,3 +1,4 @@
+
 <template>
   <div>
     <nav class="navbar navbar-light bg-white shadow-sm mb-4">
@@ -6,6 +7,7 @@
         <router-link to="/appointments" class="btn btn-outline-primary">⇆ Switch Page</router-link>
       </div>
     </nav>
+
     <div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
       <div class="card shadow p-5" style="width: 100%; max-width: 700px;">
         <h2 class="text-center mb-4 text-primary">Book an Appointment</h2>
@@ -19,8 +21,8 @@
           <div class="col-12">
             <select v-model="selectedSlot" class="form-select" required>
               <option disabled value="">Select a Time Slot</option>
-              <option v-for="slot in slots" :key="slot.slot" :value="slot.slot">
-                {{ slot.slot }}
+              <option v-for="slot in slots" :key="slot" :value="slot">
+                {{ slot }}
               </option>
             </select>
           </div>
@@ -45,30 +47,25 @@ export default {
     };
   },
   mounted() {
-    this.fetchSlots();
+    fetch("https://1e32u3h20b.execute-api.eu-north-1.amazonaws.com/prod/slots")
+      .then(res => res.json())
+      .then(data => {
+        const parsed = JSON.parse(data.body);
+        this.slots = parsed.filter(s => !s.isBooked).map(s => s.slot);
+      });
   },
   methods: {
-    fetchSlots() {
-      fetch("https://1e32u3h20b.execute-api.eu-north-1.amazonaws.com/prod/slots")
-        .then(res => res.json())
-        .then(data => {
-          const items = Array.isArray(data) ? data : JSON.parse(data.body);
-          this.slots = items.filter(s => !s.isBooked);
-        })
-        .catch(err => {
-          console.error("Error fetching slots:", err);
-        });
-    },
     submitAppointment() {
       const payload = {
         patientName: this.name,
         symptoms: this.symptoms,
         slot: this.selectedSlot
       };
+
       fetch("https://1e32u3h20b.execute-api.eu-north-1.amazonaws.com/prod/appointments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ body: JSON.stringify(payload) })
       })
         .then(res => res.json())
         .then(() => {
@@ -76,7 +73,6 @@ export default {
           this.name = "";
           this.symptoms = "";
           this.selectedSlot = "";
-          this.fetchSlots();
         })
         .catch(err => {
           console.error("Error booking appointment:", err);
