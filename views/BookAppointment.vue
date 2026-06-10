@@ -52,8 +52,7 @@ export default {
       fetch("https://1e32u3h20b.execute-api.eu-north-1.amazonaws.com/prod/slots")
         .then(res => res.json())
         .then(data => {
-          const items = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
-          this.slots = items.filter(s => !s.isBooked);
+          this.slots = data.filter(s => !s.isBooked);
         })
         .catch(err => {
           console.error("Error fetching slots:", err);
