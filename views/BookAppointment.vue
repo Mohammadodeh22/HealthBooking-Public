@@ -45,17 +45,20 @@ export default {
     };
   },
   mounted() {
-    fetch("https://1e32u3h20b.execute-api.eu-north-1.amazonaws.com/prod/slots")
-      .then(res => res.json())
-      .then(data => {
-        const items = JSON.parse(data.body);
-        this.slots = items.filter(s => !s.isBooked);
-      })
-      .catch(err => {
-        console.error("Error fetching slots:", err);
-      });
+    this.fetchSlots();
   },
   methods: {
+    fetchSlots() {
+      fetch("https://1e32u3h20b.execute-api.eu-north-1.amazonaws.com/prod/slots")
+        .then(res => res.json())
+        .then(data => {
+          const items = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+          this.slots = items.filter(s => !s.isBooked);
+        })
+        .catch(err => {
+          console.error("Error fetching slots:", err);
+        });
+    },
     submitAppointment() {
       const payload = {
         patientName: this.name,
@@ -78,14 +81,6 @@ export default {
         .catch(err => {
           console.error("Error booking appointment:", err);
           alert("Failed to book appointment.");
-        });
-    },
-    fetchSlots() {
-      fetch("https://1e32u3h20b.execute-api.eu-north-1.amazonaws.com/prod/slots")
-        .then(res => res.json())
-        .then(data => {
-          const items = JSON.parse(data.body);
-          this.slots = items.filter(s => !s.isBooked);
         });
     }
   }
